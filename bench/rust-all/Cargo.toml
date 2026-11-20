@@ -1,0 +1,26 @@
+[package]
+name = "rust-all"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "LGPL-2.1-or-later"
+description = "Every libavutil port in one staticlib, exporting only the rust_anything_* names, for bench.c"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+adler32-rs = { path = "../../adler32-rs", features = ["shadow"] }
+avstring-rs = { path = "../../avstring-rs", features = ["shadow"] }
+base64-rs = { path = "../../base64-rs", features = ["shadow"] }
+mathematics-rs = { path = "../../mathematics-rs", features = ["shadow"] }
+oneshot-crc-rs = { path = "../../oneshot-crc-rs", features = ["shadow"] }
+oneshot-md5-rs = { path = "../../oneshot-md5-rs", features = ["shadow"] }
+oneshot-murmur3-rs = { path = "../../oneshot-murmur3-rs", features = ["shadow"] }
+oneshot-sha-rs = { path = "../../oneshot-sha-rs", features = ["shadow"] }
+parseutils-rs = { path = "../../parseutils-rs", features = ["shadow"] }
+rational-rs = { path = "../../rational-rs", features = ["shadow"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
