@@ -7,9 +7,13 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+typedef struct { int num; int den; } AVRational;
+
 int64_t av_gcd(int64_t a, int64_t b);
 int64_t av_rescale_rnd(int64_t a, int64_t b, int64_t c, int rnd);
 int64_t av_rescale(int64_t a, int64_t b, int64_t c);
+int64_t av_rescale_q_rnd(int64_t a, AVRational bq, AVRational cq, int rnd);
+int64_t av_rescale_q(int64_t a, AVRational bq, AVRational cq);
 int64_t av_compare_mod(uint64_t a, uint64_t b, uint64_t mod);
 double av_bessel_i0(double x);
 
@@ -17,6 +21,8 @@ double av_bessel_i0(double x);
 int64_t rust_anything_av_gcd(int64_t a, int64_t b);
 int64_t rust_anything_av_rescale_rnd(int64_t a, int64_t b, int64_t c, int rnd);
 int64_t rust_anything_av_rescale(int64_t a, int64_t b, int64_t c);
+int64_t rust_anything_av_rescale_q_rnd(int64_t a, AVRational bq, AVRational cq, int rnd);
+int64_t rust_anything_av_rescale_q(int64_t a, AVRational bq, AVRational cq);
 int64_t rust_anything_av_compare_mod(uint64_t a, uint64_t b, uint64_t mod);
 double rust_anything_av_bessel_i0(double x);
 

@@ -3,6 +3,14 @@
 
 pub mod port;
 
+/// `AVRational` as C lays it out: passed and returned by value.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct AVRational {
+    pub num: std::ffi::c_int,
+    pub den: std::ffi::c_int,
+}
+
 /// `int64_t av_gcd(int64_t a, int64_t b)` (`mathematics.c:37`).
 #[cfg(not(feature = "shadow"))]
 // SAFETY: exported under the C name it replaces: link it instead of the original object.
@@ -51,6 +59,46 @@ pub extern "C" fn av_rescale(a: i64, b: i64, c: i64) -> i64 {
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_anything_av_rescale(a: i64, b: i64, c: i64) -> i64 {
     port::av_rescale(a, b, c)
+}
+
+/// `int64_t av_rescale_q_rnd(int64_t a, AVRational bq, AVRational cq, enum AVRounding rnd)` (`mathematics.c:134`).
+#[cfg(not(feature = "shadow"))]
+// SAFETY: exported under the C name it replaces: link it instead of the original object.
+#[unsafe(no_mangle)]
+pub extern "C" fn av_rescale_q_rnd(
+    a: i64,
+    bq: AVRational,
+    cq: AVRational,
+    rnd: std::ffi::c_int,
+) -> i64 {
+    port::av_rescale_q_rnd(a, bq, cq, rnd)
+}
+
+/// `av_rescale_q_rnd` as `rust_anything_av_rescale_q_rnd`, for shadow builds beside the original.
+// SAFETY: a name no C code defines.
+#[unsafe(no_mangle)]
+pub extern "C" fn rust_anything_av_rescale_q_rnd(
+    a: i64,
+    bq: AVRational,
+    cq: AVRational,
+    rnd: std::ffi::c_int,
+) -> i64 {
+    port::av_rescale_q_rnd(a, bq, cq, rnd)
+}
+
+/// `int64_t av_rescale_q(int64_t a, AVRational bq, AVRational cq)` (`mathematics.c:142`).
+#[cfg(not(feature = "shadow"))]
+// SAFETY: exported under the C name it replaces: link it instead of the original object.
+#[unsafe(no_mangle)]
+pub extern "C" fn av_rescale_q(a: i64, bq: AVRational, cq: AVRational) -> i64 {
+    port::av_rescale_q(a, bq, cq)
+}
+
+/// `av_rescale_q` as `rust_anything_av_rescale_q`, for shadow builds beside the original.
+// SAFETY: a name no C code defines.
+#[unsafe(no_mangle)]
+pub extern "C" fn rust_anything_av_rescale_q(a: i64, bq: AVRational, cq: AVRational) -> i64 {
+    port::av_rescale_q(a, bq, cq)
 }
 
 /// `int64_t av_compare_mod(uint64_t a, uint64_t b, uint64_t mod)` (`mathematics.c:160`).

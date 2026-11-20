@@ -7,6 +7,76 @@
   "crate_name": "avstring-rs",
   "exports": [
     {
+      "name": "av_strstart",
+      "file": "avstring.c",
+      "line": 36,
+      "params": [
+        {
+          "name": "str",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char*"
+        },
+        {
+          "name": "pfx",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char*"
+        },
+        {
+          "name": "ptr",
+          "ts_type": "outptr:0",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char**"
+        }
+      ],
+      "returns": "int",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false,
+      "native_return": "int",
+      "prototype": "int av_strstart(const char *str, const char *pfx, const char **ptr)"
+    },
+    {
+      "name": "av_stristart",
+      "file": "avstring.c",
+      "line": 47,
+      "params": [
+        {
+          "name": "str",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char*"
+        },
+        {
+          "name": "pfx",
+          "ts_type": "string",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char*"
+        },
+        {
+          "name": "ptr",
+          "ts_type": "outptr:0",
+          "optional": false,
+          "rest": false,
+          "native_type": "const char**"
+        }
+      ],
+      "returns": "int",
+      "is_async": false,
+      "is_generator": false,
+      "type_params": [],
+      "uses_instanceof": false,
+      "native_return": "int",
+      "prototype": "int av_stristart(const char *str, const char *pfx, const char **ptr)"
+    },
+    {
       "name": "av_stristr",
       "file": "avstring.c",
       "line": 58,
@@ -269,18 +339,6 @@
   "classes": [],
   "js_only": [
     {
-      "name": "av_strstart",
-      "file": "avstring.c",
-      "line": 36,
-      "reason": "passes a pointer (`const char**`): ownership must be designed"
-    },
-    {
-      "name": "av_stristart",
-      "file": "avstring.c",
-      "line": 47,
-      "reason": "passes a pointer (`const char**`): ownership must be designed"
-    },
-    {
       "name": "av_strlcatf",
       "file": "avstring.c",
       "line": 103,
@@ -296,7 +354,7 @@
       "name": "av_get_token",
       "file": "avstring.c",
       "line": 143,
-      "reason": "passes a pointer (`const char**`): ownership must be designed"
+      "reason": "kept on request"
     },
     {
       "name": "av_strtok",
@@ -332,7 +390,7 @@
       "name": "av_escape",
       "file": "avstring.c",
       "line": 327,
-      "reason": "passes a pointer (`char**`): ownership must be designed"
+      "reason": "allocates its output; char **dst is not a position in src"
     },
     {
       "name": "av_utf8_decode",

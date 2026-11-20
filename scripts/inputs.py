@@ -112,6 +112,16 @@ def mathematics():
     xs += [rng.uniform(-30, 30) for _ in range(500)] + [rng.uniform(0, 720) for _ in range(300)]
     for x in xs:
         yield {"fn": "av_bessel_i0", "args": [x]}
+    for a in RESCALE_A:
+        for bq in TIMEBASES:
+            for cq in TIMEBASES:
+                yield {"fn": "av_rescale_q", "args": [a, q(bq), q(cq)]}
+                for rnd in (0, 1, 2, 3, 5, 8197):
+                    yield {"fn": "av_rescale_q_rnd", "args": [a, q(bq), q(cq), rnd]}
+    for _ in range(3000):
+        args = [rand_i64(), q(rand_q()), q(rand_q())]
+        yield {"fn": "av_rescale_q", "args": args}
+        yield {"fn": "av_rescale_q_rnd", "args": args + [rng.choice(rnds)]}
 
 
 TOKENS = ["''", "", ":", "\\", "'", "    ''    :", "    ''  ''  :", "foo   '' :", "'foo'",
@@ -158,18 +168,53 @@ def avstring():
             yield {"fn": "av_match_name", "args": [n, l]}
             yield {"fn": "av_match_name", "args": [None, l]}
             yield {"fn": "av_match_list", "args": [n, l, 44]}
+    for s in TOKENS + WORDS + [HAYSTACK]:
+        for t in WORDS + TOKENS[:6] + ["Edu", "EDUCATION", "Education consists", HAYSTACK,
+                                       HAYSTACK + "x"]:
+            for fn in ("av_strstart", "av_stristart"):
+                yield {"fn": fn, "args": [s, t, True]}
+    for fn in ("av_strstart", "av_stristart"):
+        for s, t in [("prefix=value", "prefix="), ("PREFIX=value", "prefix="), ("abc", "abcd"),
+                     ("abc", ""), ("", ""), ("", "a"), ("é", "É"), ("x\u00e9y", "X\u00c9")]:
+            for ptr in (True, None, 0, 1):
+                yield {"fn": fn, "args": [s, t, ptr]}
+        yield {"fn": fn, "args": [None, "a", True]}
+        yield {"fn": fn, "args": ["a", None, True]}
     alphabet = "aAbB,:-|É "
     for _ in range(3000):
         s = "".join(rng.choice(alphabet) for _ in range(rng.randrange(0, 12)))
         t = "".join(rng.choice(alphabet) for _ in range(rng.randrange(0, 6)))
         fn = rng.choice(["av_stristr", "av_strcasecmp", "av_match_name", "av_match_list",
-                         "av_strncasecmp", "av_strnstr"])
+                         "av_strncasecmp", "av_strnstr", "av_strstart", "av_stristart"])
         args = [s, t]
         if fn in ("av_strncasecmp", "av_strnstr"):
             args.append(rng.randrange(0, len(s.encode()) + 1))
         if fn == "av_match_list":
             args.append(rng.choice([44, 58, 124]))
+        if fn in ("av_strstart", "av_stristart"):
+            args.append(rng.choice([True, None, 0]))
         yield {"fn": fn, "args": args}
+
+
+I32_EDGES = [-2**31, -2**31 + 1, -2**16, -1001, -3, -2, -1, 0, 1, 2, 3, 1001, 30000, 2**16,
+             2**31 - 2, 2**31 - 1]
+TIMEBASES = [(1, 90000), (1, 1000), (1, 1000000), (1001, 30000), (1001, 24000), (1, 48000),
+             (1, 44100), (1, 25), (25, 1), (0, 1), (1, 0), (0, 0), (-1, 25), (1, -25),
+             (2**31 - 1, 1), (1, 2**31 - 1), (-2**31, 1), (1, -2**31), (-2**31, -1),
+             (2**31 - 1, 2**31 - 2)]
+RESCALE_A = [-2**63, -2**63 + 1, 2**63 - 1, -2**31, 2**31 - 1, 1, 0, -1, 123456789,
+             2**31 - 2, 2**31, 2**32 - 2, 2**32 - 1, 2**32, 90000, -3003, 2**53 + 1]
+
+
+def q(t):
+    return {"num": t[0], "den": t[1]}
+
+
+def rand_q():
+    pick = lambda: (rng.choice(I32_EDGES) if rng.random() < 0.2
+                    else rng.randrange(-2**31, 2**31) if rng.random() < 0.3
+                    else rng.randrange(-1000, 100001))
+    return (pick(), pick())
 
 
 def rational():
@@ -189,6 +234,45 @@ def rational():
     for _ in range(5000):
         yield {"fn": "av_reduce",
                "args": [0, 0, rand_i64(), rand_i64(), rng.choice(maxes + [rand_i64()])]}
+    small = [(n, d) for n in range(-2, 3) for d in range(-2, 3)]
+    for a in small:
+        for b in small:
+            for fn in ("av_add_q", "av_sub_q", "av_mul_q", "av_div_q"):
+                yield {"fn": fn, "args": [q(b), q(a)]}
+            for c in ((0, 1), (1, 1), (-1, 2), (1, 0), (0, 0)):
+                yield {"fn": "av_nearer_q", "args": [q(c), q(a), q(b)]}
+    for a in TIMEBASES + [(e, 1) for e in I32_EDGES] + [(1, e) for e in I32_EDGES]:
+        for b in TIMEBASES:
+            for fn in ("av_add_q", "av_sub_q", "av_mul_q", "av_div_q"):
+                yield {"fn": fn, "args": [q(a), q(b)]}
+        yield {"fn": "av_q2intfloat", "args": [q(a)]}
+    for a in TIMEBASES:
+        for b in TIMEBASES:
+            for c in TIMEBASES[:8]:
+                yield {"fn": "av_nearer_q", "args": [q(a), q(b), q(c)]}
+    for _ in range(4000):
+        fn = rng.choice(["av_add_q", "av_sub_q", "av_mul_q", "av_div_q", "av_nearer_q"])
+        n = 3 if fn == "av_nearer_q" else 2
+        yield {"fn": fn, "args": [q(rand_q()) for _ in range(n)]}
+    den = 1
+    while den < 0x100000000 // 3:
+        num, step = -1, 0
+        while num < (1 << 27):
+            if step % 7 == 0:
+                yield {"fn": "av_q2intfloat", "args": [q((num, den))]}
+            num += 1 + num // 100 if num >= 0 else 1
+            step += 1
+        den *= 3
+    for _ in range(2000):
+        yield {"fn": "av_q2intfloat", "args": [q(rand_q())]}
+    ds = [0.0, {"$num": "-0"}, 0.5, -0.5, 1 / 3, 2 / 3, 29.97, 30000 / 1001, 24000 / 1001, 25.0,
+          3.141592653589793, 2.718281828459045, 1e-300, 5e-324, 1e-10, 1e10, 1e300, 0.1,
+          2**31 - 1, 2**31, 2**31 + 2, 2**31 + 3, 2**31 + 4, -(2**31 + 2), -(2**31 + 4),
+          {"$num": "NaN"}, {"$num": "Infinity"}, {"$num": "-Infinity"}, 1.5, -1.5, 0.999999999]
+    ds += [rng.uniform(-100, 100) for _ in range(300)] + [rng.uniform(-3e9, 3e9) for _ in range(100)]
+    for d in ds:
+        for mx in (0, 1, 2, 10, 100, 255, 1001, 65535, 2**31 - 1, -1, -2**31):
+            yield {"fn": "av_d2q", "args": [d, mx]}
 
 
 SIZE_ABBRS = ["ntsc", "pal", "qntsc", "qpal", "sntsc", "spal", "film", "ntsc-film", "sqcif",

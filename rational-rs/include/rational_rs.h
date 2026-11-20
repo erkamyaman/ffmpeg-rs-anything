@@ -7,9 +7,25 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+typedef struct { int num; int den; } AVRational;
+
 int av_reduce(int *dst_num, int *dst_den, int64_t num, int64_t den, int64_t max);
+AVRational av_mul_q(AVRational b, AVRational c);
+AVRational av_div_q(AVRational b, AVRational c);
+AVRational av_add_q(AVRational b, AVRational c);
+AVRational av_sub_q(AVRational b, AVRational c);
+AVRational av_d2q(double d, int max);
+int av_nearer_q(AVRational q, AVRational q1, AVRational q2);
+uint32_t av_q2intfloat(AVRational q);
 
 /* The same functions under `rust_anything_` names, for shadow runs. */
 int rust_anything_av_reduce(int *dst_num, int *dst_den, int64_t num, int64_t den, int64_t max);
+AVRational rust_anything_av_mul_q(AVRational b, AVRational c);
+AVRational rust_anything_av_div_q(AVRational b, AVRational c);
+AVRational rust_anything_av_add_q(AVRational b, AVRational c);
+AVRational rust_anything_av_sub_q(AVRational b, AVRational c);
+AVRational rust_anything_av_d2q(double d, int max);
+int rust_anything_av_nearer_q(AVRational q, AVRational q1, AVRational q2);
+uint32_t rust_anything_av_q2intfloat(AVRational q);
 
 #endif /* RATIONAL_RS_H */

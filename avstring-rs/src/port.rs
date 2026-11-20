@@ -8,8 +8,9 @@
 // ANY WARRANTY; see ../LICENSE for the license text.
 
 //! The Rust port of the string helpers of `avstring.c`; `lib.rs` exports each function under
-//! its C name. `av_strireplace` (returns allocated memory) and `av_basename` (returns a static
-//! string for an empty path) stay in C.
+//! its C name. `av_strireplace` (returns allocated memory), `av_basename` (returns a static
+//! string for an empty path), `av_get_token` (advances its own string and allocates) and
+//! `av_escape` (allocates its output) stay in C.
 
 #![forbid(unsafe_code)]
 
@@ -25,6 +26,48 @@ fn at(s: &[u8], i: usize) -> u8 {
 /// `av_tolower`: ASCII only.
 fn lower(c: u8) -> u8 {
     c.to_ascii_lowercase()
+}
+
+/// The shared loop of `av_strstart` and `av_stristart`: walks both strings while `same` holds;
+/// on reaching the end of `pfx` points `ptr` past the match in `str` and returns 1.
+fn starts(
+    str: Option<CChars<'_>>,
+    pfx: Option<CChars<'_>>,
+    ptr: Option<&mut Option<usize>>,
+    same: impl Fn(u8, u8) -> bool,
+) -> c_int {
+    let (Some(mut str), Some(pfx)) = (str, pfx) else {
+        return 0;
+    };
+    let mut matched = 0;
+    for p in pfx {
+        if !str.next().is_some_and(|c| same(c, p)) {
+            return 0;
+        }
+        matched += 1;
+    }
+    if let Some(ptr) = ptr {
+        *ptr = Some(matched);
+    }
+    1
+}
+
+/// Port of `int av_strstart(const char *str, const char *pfx, const char **ptr)` (`avstring.c:36`).
+pub fn av_strstart(
+    str: Option<CChars<'_>>,
+    pfx: Option<CChars<'_>>,
+    ptr: Option<&mut Option<usize>>,
+) -> c_int {
+    starts(str, pfx, ptr, |a, b| a == b)
+}
+
+/// Port of `int av_stristart(const char *str, const char *pfx, const char **ptr)` (`avstring.c:47`).
+pub fn av_stristart(
+    str: Option<CChars<'_>>,
+    pfx: Option<CChars<'_>>,
+    ptr: Option<&mut Option<usize>>,
+) -> c_int {
+    starts(str, pfx, ptr, |a, b| a.eq_ignore_ascii_case(&b))
 }
 
 /// Port of `char *av_stristr(const char *s1, const char *s2)` (`avstring.c:58`).

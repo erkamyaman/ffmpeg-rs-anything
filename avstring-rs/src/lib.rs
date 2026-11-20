@@ -84,10 +84,106 @@ mod __rust_anything_c_abi {
         unsafe { std::slice::from_raw_parts_mut(ptr, len) }
     }
 
+    /// Where the pointer behind `slot` points, as an offset from `base`: `None` for a `NULL`
+    /// `slot`, `Some(None)` when it holds `NULL`.
+    pub(super) fn offset_in<T>(slot: *mut *const T, base: *const u8) -> Option<Option<usize>> {
+        // SAFETY: the C API passes NULL or a valid, aligned pointer to a pointer, used by nothing
+        // else during the call; NULL is handled by `as_ref`.
+        let target = unsafe { slot.as_ref() }?;
+        Some((!target.is_null()).then(|| target.addr().wrapping_sub(base.addr())))
+    }
+
+    /// Points the pointer behind `slot` at `offset` bytes into `base` (`NULL` for `None`); a
+    /// `NULL` `slot` is left alone.
+    pub(super) fn set_offset<T>(
+        slot: *mut *const T,
+        base: *const u8,
+        offset: Option<Option<usize>>,
+    ) {
+        // SAFETY: as in `offset_in`.
+        if let (Some(target), Some(offset)) = (unsafe { slot.as_mut() }, offset) {
+            *target = offset.map_or(std::ptr::null(), |o| base.wrapping_add(o).cast());
+        }
+    }
+
     /// A C length as `usize`; a negative length is zero.
     pub(super) fn len<T: TryInto<usize>>(n: T) -> usize {
         n.try_into().unwrap_or(0)
     }
+}
+
+/// `int av_strstart(const char *str, const char *pfx, const char **ptr)` (`avstring.c:36`).
+#[cfg(not(feature = "shadow"))]
+// SAFETY: exported under the C name it replaces: link it instead of the original object.
+#[unsafe(no_mangle)]
+pub extern "C" fn av_strstart(
+    str: *const c_char,
+    pfx: *const c_char,
+    ptr: *mut *const std::ffi::c_char,
+) -> std::ffi::c_int {
+    let mut ptr_offset = crate::__rust_anything_c_abi::offset_in(ptr, str.cast::<u8>());
+    let result = port::av_strstart(
+        crate::__rust_anything_c_abi::c_chars(str),
+        crate::__rust_anything_c_abi::c_chars(pfx),
+        ptr_offset.as_mut(),
+    );
+    crate::__rust_anything_c_abi::set_offset(ptr, str.cast::<u8>(), ptr_offset);
+    result
+}
+
+/// `av_strstart` as `rust_anything_av_strstart`, for shadow builds beside the original.
+// SAFETY: a name no C code defines.
+#[unsafe(no_mangle)]
+pub extern "C" fn rust_anything_av_strstart(
+    str: *const c_char,
+    pfx: *const c_char,
+    ptr: *mut *const std::ffi::c_char,
+) -> std::ffi::c_int {
+    let mut ptr_offset = crate::__rust_anything_c_abi::offset_in(ptr, str.cast::<u8>());
+    let result = port::av_strstart(
+        crate::__rust_anything_c_abi::c_chars(str),
+        crate::__rust_anything_c_abi::c_chars(pfx),
+        ptr_offset.as_mut(),
+    );
+    crate::__rust_anything_c_abi::set_offset(ptr, str.cast::<u8>(), ptr_offset);
+    result
+}
+
+/// `int av_stristart(const char *str, const char *pfx, const char **ptr)` (`avstring.c:47`).
+#[cfg(not(feature = "shadow"))]
+// SAFETY: exported under the C name it replaces: link it instead of the original object.
+#[unsafe(no_mangle)]
+pub extern "C" fn av_stristart(
+    str: *const c_char,
+    pfx: *const c_char,
+    ptr: *mut *const std::ffi::c_char,
+) -> std::ffi::c_int {
+    let mut ptr_offset = crate::__rust_anything_c_abi::offset_in(ptr, str.cast::<u8>());
+    let result = port::av_stristart(
+        crate::__rust_anything_c_abi::c_chars(str),
+        crate::__rust_anything_c_abi::c_chars(pfx),
+        ptr_offset.as_mut(),
+    );
+    crate::__rust_anything_c_abi::set_offset(ptr, str.cast::<u8>(), ptr_offset);
+    result
+}
+
+/// `av_stristart` as `rust_anything_av_stristart`, for shadow builds beside the original.
+// SAFETY: a name no C code defines.
+#[unsafe(no_mangle)]
+pub extern "C" fn rust_anything_av_stristart(
+    str: *const c_char,
+    pfx: *const c_char,
+    ptr: *mut *const std::ffi::c_char,
+) -> std::ffi::c_int {
+    let mut ptr_offset = crate::__rust_anything_c_abi::offset_in(ptr, str.cast::<u8>());
+    let result = port::av_stristart(
+        crate::__rust_anything_c_abi::c_chars(str),
+        crate::__rust_anything_c_abi::c_chars(pfx),
+        ptr_offset.as_mut(),
+    );
+    crate::__rust_anything_c_abi::set_offset(ptr, str.cast::<u8>(), ptr_offset);
+    result
 }
 
 /// `char *av_stristr(const char *s1, const char *s2)` (`avstring.c:58`).

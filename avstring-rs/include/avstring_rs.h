@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+int av_strstart(const char *str, const char *pfx, const char **ptr);
+int av_stristart(const char *str, const char *pfx, const char **ptr);
 char *av_stristr(const char *s1, const char *s2);
 char *av_strnstr(const char *haystack, const char *needle, size_t hay_length);
 size_t av_strlcpy(char *dst, const char *src, size_t size);
@@ -17,6 +19,8 @@ int av_match_name(const char *name, const char *names);
 int av_match_list(const char *name, const char *list, char separator);
 
 /* The same functions under `rust_anything_` names, for shadow runs. */
+int rust_anything_av_strstart(const char *str, const char *pfx, const char **ptr);
+int rust_anything_av_stristart(const char *str, const char *pfx, const char **ptr);
 char *rust_anything_av_stristr(const char *s1, const char *s2);
 char *rust_anything_av_strnstr(const char *haystack, const char *needle, size_t hay_length);
 size_t rust_anything_av_strlcpy(char *dst, const char *src, size_t size);

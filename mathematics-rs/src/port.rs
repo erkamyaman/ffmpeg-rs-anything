@@ -6,8 +6,9 @@
 // version 2.1 of the License, or (at your option) any later version. It is distributed WITHOUT
 // ANY WARRANTY; see ../LICENSE for the license text.
 
-//! The Rust port of the integer and Bessel functions of `mathematics.c`; `lib.rs` exports each
-//! function under its C name.
+//! The Rust port of the integer, rescaling and Bessel functions of `mathematics.c`; `lib.rs`
+//! exports each function under its C name. `av_compare_ts`, `av_rescale_delta` and
+//! `av_add_stable` stay in C.
 
 #![forbid(unsafe_code)]
 
@@ -107,6 +108,19 @@ pub fn av_rescale_rnd(a: i64, b: i64, c: i64, rnd: c_int) -> i64 {
 /// Port of `int64_t av_rescale(int64_t a, int64_t b, int64_t c)` (`mathematics.c:134`).
 pub fn av_rescale(a: i64, b: i64, c: i64) -> i64 {
     av_rescale_rnd(a, b, c, AV_ROUND_NEAR_INF)
+}
+
+/// Port of `int64_t av_rescale_q_rnd(int64_t a, AVRational bq, AVRational cq, enum AVRounding rnd)` (`mathematics.c:134`):
+/// `a * bq / cq`, rounded as `rnd` says.
+pub fn av_rescale_q_rnd(a: i64, bq: crate::AVRational, cq: crate::AVRational, rnd: c_int) -> i64 {
+    let b = i64::from(bq.num) * i64::from(cq.den);
+    let c = i64::from(cq.num) * i64::from(bq.den);
+    av_rescale_rnd(a, b, c, rnd)
+}
+
+/// Port of `int64_t av_rescale_q(int64_t a, AVRational bq, AVRational cq)` (`mathematics.c:142`).
+pub fn av_rescale_q(a: i64, bq: crate::AVRational, cq: crate::AVRational) -> i64 {
+    av_rescale_q_rnd(a, bq, cq, AV_ROUND_NEAR_INF)
 }
 
 /// Port of `int64_t av_compare_mod(uint64_t a, uint64_t b, uint64_t mod)` (`mathematics.c:160`).
